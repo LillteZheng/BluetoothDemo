@@ -5,31 +5,45 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    tools:context=".bluetooth.a2dp.A2dpActivity">
+    >
 
     <Button
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:onClick="scan"
-        android:text="扫描"
-        />
-
+        android:text="扫描设备"
+        android:onClick="scan"/>
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recycler"
         android:layout_width="match_parent"
-        android:padding="10dp"
-        android:layout_height="220dp"/>
+        android:layout_height="200dp"/>
+
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:onClick="readData"
+        android:text="读取数据"/>
+
+    <EditText
+        android:id="@+id/edit"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="不要超过20个字节"/>
+    <Button
+        android:layout_width="match_parent"
+        android:text="写数据"
+        android:onClick="writeData"
+        android:layout_height="wrap_content"/>
 
     <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
+
         <TextView
-            android:id="@+id/log_tv"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textSize="16sp"
-            android:paddingBottom="10dp"/>
+            android:id="@+id/info_tv"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
+
     </androidx.core.widget.NestedScrollView>
 
 </androidx.appcompat.widget.LinearLayoutCompat>

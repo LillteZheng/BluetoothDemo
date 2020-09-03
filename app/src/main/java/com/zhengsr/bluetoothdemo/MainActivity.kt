@@ -11,9 +11,11 @@ import android.os.Bundle
 import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import com.zhengsr.bluetoothdemo.bt.A2dpActivity
-import com.zhengsr.bluetoothdemo.bt.BtClientActivity
-import com.zhengsr.bluetoothdemo.bt.BtServerActivity
+import com.zhengsr.bluetoothdemo.bluetooth.a2dp.A2dpActivity
+import com.zhengsr.bluetoothdemo.bluetooth.ble.BleClientActivity
+import com.zhengsr.bluetoothdemo.bluetooth.ble.BleServerActivity
+import com.zhengsr.bluetoothdemo.bluetooth.bt.BtClientActivity
+import com.zhengsr.bluetoothdemo.bluetooth.bt.BtServerActivity
 import com.zhengsr.zplib.ZPermission
 
 const val TAG = "MainActivity"
@@ -22,25 +24,19 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
         requestPermission()
 
         val bluetooth = BluetoothAdapter.getDefaultAdapter()
         if (bluetooth == null) {
-            Toast.makeText(this, "您的设备未找到蓝牙驱动！！", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "您的设备未找到蓝牙驱动！!", Toast.LENGTH_SHORT).show()
             finish()
         }else {
             if (!bluetooth.isEnabled) {
                 startActivityForResult(Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE),1)
             }
         }
-
-
-
-
-
     }
-
-
 
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -82,5 +78,9 @@ class MainActivity : AppCompatActivity() {
     fun server(view: View) {startActivity(Intent(this,
         BtServerActivity::class.java))}
 
-    fun a2dpclient(view: View) {startActivity(Intent(this,A2dpActivity::class.java))}
+    fun a2dpclient(view: View) {startActivity(Intent(this,
+        A2dpActivity::class.java))}
+
+    fun bleServer(view: View) {startActivity(Intent(this,BleServerActivity::class.java))}
+    fun bleClient(view: View) {startActivity(Intent(this,BleClientActivity::class.java))}
 }

@@ -1,4 +1,4 @@
-package com.zhengsr.bluetoothdemo.bt
+package com.zhengsr.bluetoothdemo.bluetooth.bt
 
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothServerSocket
@@ -9,8 +9,6 @@ import android.view.View
 import android.widget.EditText
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
-import com.zhengsr.bluetoothdemo.BlueHelper
-import com.zhengsr.bluetoothdemo.HandleSocket
 import com.zhengsr.bluetoothdemo.R
 
 class BtServerActivity : AppCompatActivity() {
@@ -108,7 +106,7 @@ class BtServerActivity : AppCompatActivity() {
         private val serverSocket: BluetoothServerSocket? by lazy {
             //非明文匹配，不安全
             readListener?.onStart()
-            bluetooth.listenUsingInsecureRfcommWithServiceRecord(TAG, BlueHelper.BLUE_UUID)
+            bluetooth.listenUsingInsecureRfcommWithServiceRecord(TAG, BtBlueImpl.BLUE_UUID)
         }
 
         override fun run() {
@@ -128,7 +126,8 @@ class BtServerActivity : AppCompatActivity() {
                     //拿到接入设备的名字
                     readListener?.onConnected(socket.remoteDevice.name)
                     //处理接收事件
-                    handleSocket = HandleSocket(socket)
+                    handleSocket =
+                        HandleSocket(socket)
                     handleSocket.start(readListener,writeListener)
                     //关闭服务端，只连接一个
                     serverSocket?.close()
@@ -146,7 +145,9 @@ class BtServerActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
-        socketThread.cancel()
+        if (!::socketThread.isInitialized) {
+            socketThread.cancel()
+        }
 
     }
 

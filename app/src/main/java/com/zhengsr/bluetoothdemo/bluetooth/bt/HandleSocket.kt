@@ -1,4 +1,4 @@
-package com.zhengsr.bluetoothdemo
+package com.zhengsr.bluetoothdemo.bluetooth.bt
 
 import android.bluetooth.BluetoothSocket
 import com.zhengsr.bluetoothdemo.utils.close

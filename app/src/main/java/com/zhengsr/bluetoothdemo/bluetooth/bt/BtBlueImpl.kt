@@ -1,4 +1,4 @@
-package com.zhengsr.bluetoothdemo.bt.blueImpl
+package com.zhengsr.bluetoothdemo.bluetooth.bt
 
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
@@ -9,6 +9,7 @@ import android.content.IntentFilter
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
+import java.util.*
 
 /**
  * @author by zhengshaorui 2020/8/5 09:26
@@ -18,9 +19,17 @@ typealias BlueDevFoundListener = (BluetoothDevice) -> Unit
 typealias BlueBroadcastListener = (context: Context?, intent: Intent?) -> Unit
 
 
-//todo 后面还有 BLE ，待优化
-abstract class BaseBlueImpl(private val context: Context) {
-    protected val bluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
+object BtBlueImpl {
+    val BLUE_UUID = UUID.fromString("00001101-2300-1000-8000-00815F9B34FB")
+
+
+    private var context: Context? = null
+    fun init(context: Context?): BtBlueImpl {
+        this.context = context?.applicationContext
+        return this
+    }
+
+    private val bluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
 
     private var blueBroadcastListener: BlueBroadcastListener? = null
     private var blueDevFoundListener: BlueDevFoundListener? = null
@@ -36,14 +45,13 @@ abstract class BaseBlueImpl(private val context: Context) {
     fun registerBroadcast(
         actions: List<String>? = null,
         callback: BlueBroadcastListener? = null
-    ): BaseBlueImpl {
+    ): BtBlueImpl {
         blueBroadcastListener = callback
-        initBroadcast()?.run {
-            actions?.forEach { action ->
-                addAction(action)
-            }
+        IntentFilter().apply {
+            addAction(BluetoothDevice.ACTION_FOUND)
+            addAction(BluetoothDevice.ACTION_BOND_STATE_CHANGED)
             blueBroadcast = BlueBroadcast()
-            context.registerReceiver(blueBroadcast, this)
+            context?.registerReceiver(blueBroadcast, this)
         }
         return this
     }
@@ -51,7 +59,7 @@ abstract class BaseBlueImpl(private val context: Context) {
     /**
      * 蓝牙广播接收
      */
-    inner class BlueBroadcast : BroadcastReceiver() {
+    class BlueBroadcast : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
             blueBroadcastListener?.let { it(context, intent) }
             when (intent?.action) {
@@ -96,7 +104,7 @@ abstract class BaseBlueImpl(private val context: Context) {
     /**
      * 注册需要的广播
      */
-    abstract fun initBroadcast(): IntentFilter?
+    // abstract fun initBroadcast(): IntentFilter?
 
     /**
      * 拿到蓝牙类
@@ -109,7 +117,7 @@ abstract class BaseBlueImpl(private val context: Context) {
      * 释放资源
      */
     fun release() {
-        blueBroadcast?.let { context.unregisterReceiver(it) }
+        blueBroadcast?.let { context?.unregisterReceiver(it) }
     }
 
 

@@ -1,4 +1,4 @@
-package com.zhengsr.bluetoothdemo.bt
+package com.zhengsr.bluetoothdemo.bluetooth.bt
 
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
@@ -16,8 +16,6 @@ import com.chad.library.adapter.base.BaseQuickAdapter
 import com.chad.library.adapter.base.listener.OnItemClickListener
 import com.chad.library.adapter.base.listener.OnItemLongClickListener
 import com.chad.library.adapter.base.viewholder.BaseViewHolder
-import com.zhengsr.bluetoothdemo.BlueHelper
-import com.zhengsr.bluetoothdemo.HandleSocket
 import com.zhengsr.bluetoothdemo.R
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
@@ -52,7 +50,7 @@ class BtClientActivity : AppCompatActivity(), OnItemClickListener, OnItemLongCli
         sendMsgEd = findViewById(R.id.send_edit)
 
         initRecyclerView()
-        BlueHelper.initBL(this)
+        BtBlueImpl.init(this)
             .registerBroadcast()
             .foundDevices { dev ->
 
@@ -72,10 +70,11 @@ class BtClientActivity : AppCompatActivity(), OnItemClickListener, OnItemLongCli
         val manager = LinearLayoutManager(this)
 
         recyclerView.layoutManager = manager
-        blueAdapter = BlueAdapter(
-            blueBeans,
-            R.layout.recy_blue_item_layout
-        )
+        blueAdapter =
+            BlueAdapter(
+                blueBeans,
+                R.layout.recy_blue_item_layout
+            )
         blueAdapter.animationEnable = true
         recyclerView.adapter = blueAdapter
 
@@ -134,8 +133,7 @@ class BtClientActivity : AppCompatActivity(), OnItemClickListener, OnItemLongCli
     fun scan(view: View) {
         blueBeans.clear()
         blueAdapter.notifyDataSetChanged()
-        BlueHelper.getBl()
-            ?.foundDevices { bean ->
+        BtBlueImpl.foundDevices { bean ->
                 if (bean !in blueBeans && bean.name != null) {
                     blueBeans.add(bean)
                     blueAdapter.notifyItemInserted(blueBeans.size)
@@ -159,7 +157,7 @@ class BtClientActivity : AppCompatActivity(), OnItemClickListener, OnItemLongCli
         private val socket: BluetoothSocket? by lazy {
             readListener?.onStart()
             //监听该 uuid
-            device.createRfcommSocketToServiceRecord(BlueHelper.BLUE_UUID)
+            device.createRfcommSocketToServiceRecord(BtBlueImpl.BLUE_UUID)
         }
 
         override fun run() {
@@ -175,7 +173,8 @@ class BtClientActivity : AppCompatActivity(), OnItemClickListener, OnItemLongCli
                     socket?.remoteDevice?.let { readListener?.onConnected(it.name) }
 
                     //处理 socket 读写
-                    handleSocket = HandleSocket(this)
+                    handleSocket =
+                        HandleSocket(this)
                     handleSocket?.start(readListener, writeListener)
 
                 }
@@ -200,7 +199,7 @@ class BtClientActivity : AppCompatActivity(), OnItemClickListener, OnItemLongCli
     override fun onDestroy() {
         super.onDestroy()
         connectThread?.cancel()
-        BlueHelper.release()
+        BtBlueImpl.release()
     }
 
     val readListener = object : HandleSocket.BluetoothListener {

@@ -1,4 +1,4 @@
-package com.zhengsr.bluetoothdemo.bt
+package com.zhengsr.bluetoothdemo.bluetooth.a2dp
 
 import android.bluetooth.*
 import android.content.Context
@@ -15,8 +15,8 @@ import androidx.recyclerview.widget.RecyclerView
 import com.chad.library.adapter.base.BaseQuickAdapter
 import com.chad.library.adapter.base.viewholder.BaseViewHolder
 import com.zhengsr.bluetoothdemo.R
-import com.zhengsr.bluetoothdemo.BlueHelper
-import com.zhengsr.bluetoothdemo.bt.blueImpl.BlueBroadcastListener
+import com.zhengsr.bluetoothdemo.bluetooth.bt.BlueBroadcastListener
+import com.zhengsr.bluetoothdemo.bluetooth.bt.BtBlueImpl
 import com.zhengsr.bluetoothdemo.utils.close
 
 class A2dpActivity : AppCompatActivity() {
@@ -56,7 +56,7 @@ class A2dpActivity : AppCompatActivity() {
         )
 
 
-        BlueHelper.initBL(this)
+        BtBlueImpl.init(this)
             .registerBroadcast(broadcast, blueStateListener)
             .foundDevices { bean ->
                 if (bean !in blueBeans && bean.name != null) {
@@ -93,7 +93,10 @@ class A2dpActivity : AppCompatActivity() {
         val manager = LinearLayoutManager(this)
 
         recyclerView.layoutManager = manager
-        blueAdapter = BlueAdapter(blueBeans, R.layout.recy_blue_item_layout)
+        blueAdapter = BlueAdapter(
+            blueBeans,
+            R.layout.recy_blue_item_layout
+        )
         blueAdapter.animationEnable = true
         recyclerView.adapter = blueAdapter
 
@@ -102,7 +105,8 @@ class A2dpActivity : AppCompatActivity() {
             Toast.makeText(this, "开始连接...", Toast.LENGTH_SHORT).show()
             itemStateTv = view.findViewById(R.id.blue_item_status_tv)
 
-            connectThread = ConnectThread(dev, object : ConnectListener {
+            connectThread = ConnectThread(dev, object :
+                ConnectListener {
                 override fun onStart() {
                     Log.d(TAG, "zsr onStart: ")
                 }
@@ -212,7 +216,8 @@ class A2dpActivity : AppCompatActivity() {
     }
 
 
-    val blueStateListener = object : BlueBroadcastListener {
+    val blueStateListener = object :
+        BlueBroadcastListener {
         override fun invoke(context: Context?, intent: Intent?) {
             when (intent?.action) {
                 BluetoothDevice.ACTION_BOND_STATE_CHANGED -> {
@@ -258,8 +263,7 @@ class A2dpActivity : AppCompatActivity() {
     fun scan(view: View) {
         blueBeans.clear()
         blueAdapter.notifyDataSetChanged()
-        BlueHelper.getBl()
-            ?.foundDevices { bean ->
+        BtBlueImpl.foundDevices { bean ->
                 if (bean !in blueBeans && bean.name != null) {
                     blueBeans.add(bean)
                     blueAdapter.notifyItemInserted(blueBeans.size)
@@ -275,7 +279,7 @@ class A2dpActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
-        BlueHelper.release()
+        BtBlueImpl.release()
         bluetooth.closeProfileProxy(BluetoothProfile.A2DP,bluetoothA2dp)
         connectThread?.cancel()
     }

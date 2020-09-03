@@ -26,4 +26,17 @@
         android:text="传统蓝牙服务端(流模式)"
         android:onClick="server"
         />
+
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="低功耗蓝牙服务端(外部设备)"
+        android:onClick="bleServer"
+        />
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="低功耗蓝牙客户端(中心设备设备)"
+        android:onClick="bleClient"
+        />
 </androidx.appcompat.widget.LinearLayoutCompat>

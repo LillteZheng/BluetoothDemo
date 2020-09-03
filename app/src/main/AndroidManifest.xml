@@ -18,9 +18,11 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".bt.A2dpActivity"></activity>
-        <activity android:name=".bt.BtServerActivity" />
-        <activity android:name=".bt.BtClientActivity" />
+        <activity android:name=".bluetooth.ble.BleClientActivity"></activity>
+        <activity android:name=".bluetooth.ble.BleServerActivity" />
+        <activity android:name=".bluetooth.a2dp.A2dpActivity" />
+        <activity android:name=".bluetooth.bt.BtServerActivity" />
+        <activity android:name=".bluetooth.bt.BtClientActivity" />
         <activity android:name=".MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
