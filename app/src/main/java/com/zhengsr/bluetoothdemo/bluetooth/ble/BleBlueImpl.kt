@@ -67,10 +67,10 @@ object BleBlueImpl {
         //扫描是很耗电的，所以，我们不能持续扫描
         handler.postDelayed({
 
-            bluetoothAdapter?.bluetoothLeScanner?.stopScan(scanListener)
+            bluetoothAdapter.bluetoothLeScanner?.stopScan(scanListener)
             isScanning = false;
         }, 3000)
-        bluetoothAdapter?.bluetoothLeScanner?.startScan(null, builder.build(), scanListener)
+        bluetoothAdapter.bluetoothLeScanner?.startScan(null, builder.build(), scanListener)
         //过滤特定的 UUID 设备
         //bluetoothAdapter?.bluetoothLeScanner?.startScan()
     }

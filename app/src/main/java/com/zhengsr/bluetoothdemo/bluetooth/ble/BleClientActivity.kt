@@ -6,7 +6,6 @@ import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
-import android.util.Log
 import android.view.View
 import android.widget.EditText
 import android.widget.TextView
@@ -92,12 +91,11 @@ class BleClientActivity : AppCompatActivity(), OnItemClickListener {
     }
 
     override fun onItemClick(adapter: BaseQuickAdapter<*, *>, view: View, position: Int) {
+        //连接之前先关闭连接
         closeConnect()
         val bleData = mData[position]
         blueGatt = bleData.dev.connectGatt(this, false, blueGattListener)
-
         logInfo("开始与 ${bleData.dev.name} 连接.... $blueGatt")
-
     }
 
 
@@ -120,10 +118,10 @@ class BleClientActivity : AppCompatActivity(), OnItemClickListener {
             val device = gatt?.device
             if (newState == BluetoothProfile.STATE_CONNECTED){
                 isConnected = true
-                //开始发现服务
+                //开始发现服务，有个小延时，最后200ms后尝试发现服务
                 handler.postDelayed({
                     gatt?.discoverServices()
-                },500)
+                },300)
 
                 device?.let{logInfo("与 ${it.name} 连接成功!!!")}
             }else if (newState == BluetoothProfile.STATE_DISCONNECTED){
@@ -252,6 +250,7 @@ class BleClientActivity : AppCompatActivity(), OnItemClickListener {
      * 读数据
      */
     fun readData(view: View) {
+        //找到 gatt 服务
         val service = getGattService(BleBlueImpl.UUID_SERVICE)
         if (service != null) {
             val characteristic =
@@ -267,7 +266,6 @@ class BleClientActivity : AppCompatActivity(), OnItemClickListener {
             Toast.makeText(this, "没有连接", Toast.LENGTH_SHORT).show()
             return null
         }
-        Log.d(TAG, "zsr getGattService: $mBluetoothGatt")
         val service = mBluetoothGatt?.getService(uuid)
         if (service == null) {
             Toast.makeText(this, "没有找到服务", Toast.LENGTH_SHORT).show()

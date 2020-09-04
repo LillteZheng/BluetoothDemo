@@ -13,7 +13,6 @@ import android.widget.TextView
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import com.zhengsr.bluetoothdemo.R
-import com.zhengsr.bluetoothdemo.utils.hexStringToBytes
 
 
 /**
@@ -59,26 +58,25 @@ class BleServerActivity : AppCompatActivity() {
             .setTxPowerLevel(AdvertiseSettings.ADVERTISE_TX_POWER_HIGH)
             // 可连接
             .setConnectable(true)
-            //持续广播
+            //广播时限。最多180000毫秒。值为0将禁用时间限制。（不设置则为无限广播时长）
             .setTimeout(0)
             .build()
         //设置广播包，这个是必须要设置的
         val advData = AdvertiseData.Builder()
             .setIncludeDeviceName(true) //显示名字
             .setIncludeTxPowerLevel(true)//设置功率
-            // .addManufacturerData(1, byteArrayOf(23,33)) //设置厂商数据
             .addServiceUuid(ParcelUuid(BleBlueImpl.UUID_SERVICE)) //设置 UUID 服务的 uuid
             .build()
 
-        //val bssid = byteArrayOf(ac,)
-        val n =hexStringToBytes("ac")
 
+
+        //测试 31bit
         val byteData = byteArrayOf(-65, 2, 3, 6, 4, 23, 23, 9, 9,
-            9,1, 2, 3, 6, 4, 23, 23, 9, 9, 8,23,23,23,23,23,23)
+            9,1, 2, 3, 6, 4, 23, 23, 9, 9, 8,23,23,23)
 
-
-        //扫描相应数据（可不写，客户端扫描才发送）
+        //扫描广播数据（可不写，客户端扫描才发送）
         val scanResponse = AdvertiseData.Builder()
+            //设置厂商数据
             .addManufacturerData(0x19, byteData)
             .build()
 
@@ -93,27 +91,17 @@ class BleServerActivity : AppCompatActivity() {
          * 外设作为 GATT(server)，它维持了 ATT 的查找表以及service 和 charateristic 的定义
          */
 
-        //开启广播,这个外设就开始发送广播了
         val bluetoothLeAdvertiser = bluetoothAdapter?.bluetoothLeAdvertiser
+        //开启广播,这个外设就开始发送广播了
         bluetoothLeAdvertiser?.startAdvertising(
             advSetting,
             advData,
             scanResponse,
             advertiseCallback
         )
-        Log.d(TAG, "zsr initBle: $bluetoothLeAdvertiser.")
 
 
-        /**
-         * 添加 Gatt service 用来通信
-         */
 
-        //开启广播service，这样才能通信，包含一个或多个 characteristic ，每个service 都有一个 uuid
-        val gattService =
-            BluetoothGattService(
-                BleBlueImpl.UUID_SERVICE,
-                BluetoothGattService.SERVICE_TYPE_PRIMARY
-            )
 
 
         /**
@@ -144,11 +132,23 @@ class BleServerActivity : AppCompatActivity() {
                 BluetoothGattDescriptor.PERMISSION_WRITE
             )
 
+        //为特征值添加描述
+        writeCharacteristic.addDescriptor(descriptor)
+
+
+        /**
+         * 添加 Gatt service 用来通信
+         */
+
+        //开启广播service，这样才能通信，包含一个或多个 characteristic ，每个service 都有一个 uuid
+        val gattService =
+            BluetoothGattService(
+                BleBlueImpl.UUID_SERVICE,
+                BluetoothGattService.SERVICE_TYPE_PRIMARY
+            )
         gattService.addCharacteristic(readCharacteristic)
         gattService.addCharacteristic(writeCharacteristic)
 
-        //为特征值添加描述
-        writeCharacteristic.addDescriptor(descriptor)
 
         val bluetoothManager = getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
         //打开 GATT 服务，方便客户端连接
