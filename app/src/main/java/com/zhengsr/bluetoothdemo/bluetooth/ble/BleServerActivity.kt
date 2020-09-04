@@ -13,7 +13,7 @@ import android.widget.TextView
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import com.zhengsr.bluetoothdemo.R
-import java.util.*
+import com.zhengsr.bluetoothdemo.utils.hexStringToBytes
 
 
 /**
@@ -25,12 +25,6 @@ import java.util.*
 class BleServerActivity : AppCompatActivity() {
 
 
-    companion object{
-        val UUID_SERVICE = UUID.fromString("10000000-0000-0000-0000-000000000000")
-        val UUID_READ_NOTIFY = UUID.fromString("11000000-0000-0000-0000-000000000000")
-        val UUID_WRITE = UUID.fromString("12000000-0000-0000-0000-000000000000")
-        val UUID_DESCRIBE = UUID.fromString("12000000-0000-0000-0000-000000000000")
-    }
     private val TAG = javaClass.simpleName
 
     private lateinit var textView: TextView
@@ -46,6 +40,10 @@ class BleServerActivity : AppCompatActivity() {
 
 
     private fun initBle() {
+        val blueManager = getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
+        bluetoothAdapter = blueManager.adapter
+        bluetoothAdapter?.name = "k20"
+
         /**
          * GAP广播数据最长只能31个字节，包含两中： 广播数据和扫描回复
          * - 广播数据是必须的，外设需要不断发送广播，让中心设备知道
@@ -69,17 +67,19 @@ class BleServerActivity : AppCompatActivity() {
             .setIncludeDeviceName(true) //显示名字
             .setIncludeTxPowerLevel(true)//设置功率
             // .addManufacturerData(1, byteArrayOf(23,33)) //设置厂商数据
-
+            .addServiceUuid(ParcelUuid(BleBlueImpl.UUID_SERVICE)) //设置 UUID 服务的 uuid
             .build()
+
+        //val bssid = byteArrayOf(ac,)
+        val n =hexStringToBytes("ac")
+
+        val byteData = byteArrayOf(-65, 2, 3, 6, 4, 23, 23, 9, 9,
+            9,1, 2, 3, 6, 4, 23, 23, 9, 9, 8,23,23,23,23,23,23)
 
 
         //扫描相应数据（可不写，客户端扫描才发送）
-       val msg =  "我是测试，我在测试"
         val scanResponse = AdvertiseData.Builder()
-            .setIncludeDeviceName(false) //不显示名字
-            .setIncludeTxPowerLevel(false) //隐藏发射功率
-            .addManufacturerData(2, byteArrayOf(23, 36)) //设置厂商数据
-            .addServiceUuid(ParcelUuid(UUID_SERVICE)) //设置 UUID 服务的 uuid
+            .addManufacturerData(0x19, byteData)
             .build()
 
 
@@ -93,14 +93,15 @@ class BleServerActivity : AppCompatActivity() {
          * 外设作为 GATT(server)，它维持了 ATT 的查找表以及service 和 charateristic 的定义
          */
 
-        bluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
         //开启广播,这个外设就开始发送广播了
-        bluetoothAdapter?.bluetoothLeAdvertiser?.startAdvertising(
+        val bluetoothLeAdvertiser = bluetoothAdapter?.bluetoothLeAdvertiser
+        bluetoothLeAdvertiser?.startAdvertising(
             advSetting,
             advData,
             scanResponse,
             advertiseCallback
         )
+        Log.d(TAG, "zsr initBle: $bluetoothLeAdvertiser.")
 
 
         /**
@@ -109,7 +110,10 @@ class BleServerActivity : AppCompatActivity() {
 
         //开启广播service，这样才能通信，包含一个或多个 characteristic ，每个service 都有一个 uuid
         val gattService =
-            BluetoothGattService(UUID_SERVICE, BluetoothGattService.SERVICE_TYPE_PRIMARY)
+            BluetoothGattService(
+                BleBlueImpl.UUID_SERVICE,
+                BluetoothGattService.SERVICE_TYPE_PRIMARY
+            )
 
 
         /**
@@ -120,7 +124,7 @@ class BleServerActivity : AppCompatActivity() {
          */
         //添加读+通知的 GattCharacteristic
         val readCharacteristic = BluetoothGattCharacteristic(
-            UUID_READ_NOTIFY,
+            BleBlueImpl.UUID_READ_NOTIFY,
             BluetoothGattCharacteristic.PROPERTY_READ or BluetoothGattCharacteristic.PROPERTY_NOTIFY,
             BluetoothGattCharacteristic.PERMISSION_READ
         )
@@ -128,14 +132,17 @@ class BleServerActivity : AppCompatActivity() {
 
         //添加写的 GattCharacteristic
         val writeCharacteristic = BluetoothGattCharacteristic(
-            UUID_WRITE,
+            BleBlueImpl.UUID_WRITE,
             BluetoothGattCharacteristic.PROPERTY_WRITE,
             BluetoothGattCharacteristic.PERMISSION_WRITE
         )
 
         //添加 Descriptor 描述符
         val descriptor =
-            BluetoothGattDescriptor(UUID_DESCRIBE, BluetoothGattDescriptor.PERMISSION_WRITE)
+            BluetoothGattDescriptor(
+                BleBlueImpl.UUID_DESCRIBE,
+                BluetoothGattDescriptor.PERMISSION_WRITE
+            )
 
         gattService.addCharacteristic(readCharacteristic)
         gattService.addCharacteristic(writeCharacteristic)
@@ -175,7 +182,7 @@ class BleServerActivity : AppCompatActivity() {
             /**
              * 中心设备read时，回调
              */
-            val data = "this is a test"
+            val data = "this is a test from ble server"
             mBluetoothGattServer?.sendResponse(
                 device, requestId, BluetoothGatt.GATT_SUCCESS,
                 offset, data.toByteArray()
@@ -278,7 +285,11 @@ class BleServerActivity : AppCompatActivity() {
 
         override fun onStartFailure(errorCode: Int) {
             super.onStartFailure(errorCode)
-            logInfo("服务启动失败: $errorCode")
+            if (errorCode == ADVERTISE_FAILED_DATA_TOO_LARGE) {
+                logInfo("广播数据超过31个字节了 !")
+            } else {
+                logInfo("服务启动失败: $errorCode")
+            }
         }
     }
 

@@ -9,6 +9,7 @@ import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import androidx.annotation.RequiresApi
+import java.util.*
 
 /**
  * @author by zhengshaorui 2020/9/3 17:26
@@ -19,6 +20,10 @@ typealias BleDevListener = (BleData) -> Unit
 
 @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
 object BleBlueImpl {
+    val UUID_SERVICE = UUID.fromString("10000000-0000-0000-0000-000000000000")
+    val UUID_READ_NOTIFY = UUID.fromString("11000000-0000-0000-0000-000000000000")
+    val UUID_WRITE = UUID.fromString("12000000-0000-0000-0000-000000000000")
+    val UUID_DESCRIBE = UUID.fromString("12000000-0000-0000-0000-000000000000")
     val handler = Handler(Looper.getMainLooper())
     private var isScanning = false
     private var bluetoothAdapter: BluetoothAdapter = BluetoothAdapter.getDefaultAdapter()

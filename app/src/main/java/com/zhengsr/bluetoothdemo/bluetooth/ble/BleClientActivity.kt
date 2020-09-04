@@ -118,7 +118,7 @@ class BleClientActivity : AppCompatActivity(), OnItemClickListener {
         override fun onConnectionStateChange(gatt: BluetoothGatt?, status: Int, newState: Int) {
             super.onConnectionStateChange(gatt, status, newState)
             val device = gatt?.device
-            if (status == BluetoothGatt.GATT_SUCCESS && newState == BluetoothProfile.STATE_CONNECTED){
+            if (newState == BluetoothProfile.STATE_CONNECTED){
                 isConnected = true
                 //开始发现服务
                 handler.postDelayed({
@@ -126,7 +126,7 @@ class BleClientActivity : AppCompatActivity(), OnItemClickListener {
                 },500)
 
                 device?.let{logInfo("与 ${it.name} 连接成功!!!")}
-            }else{
+            }else if (newState == BluetoothProfile.STATE_DISCONNECTED){
                 isConnected = false
                 logInfo("无法与 ${device?.name} 连接: $status")
                 closeConnect()
@@ -136,7 +136,7 @@ class BleClientActivity : AppCompatActivity(), OnItemClickListener {
         override fun onServicesDiscovered(gatt: BluetoothGatt?, status: Int) {
             super.onServicesDiscovered(gatt, status)
            // Log.d(TAG, "zsr onServicesDiscovered: ${gatt?.device?.name}")
-            val service = gatt?.getService(BleServerActivity.UUID_SERVICE)
+            val service = gatt?.getService(BleBlueImpl.UUID_SERVICE)
             mBluetoothGatt = gatt
             logInfo("已连接上 GATT 服务，可以通信! ")
 
@@ -252,10 +252,10 @@ class BleClientActivity : AppCompatActivity(), OnItemClickListener {
      * 读数据
      */
     fun readData(view: View) {
-        val service = getGattService(BleServerActivity.UUID_SERVICE)
+        val service = getGattService(BleBlueImpl.UUID_SERVICE)
         if (service != null) {
             val characteristic =
-                service.getCharacteristic(BleServerActivity.UUID_READ_NOTIFY) //通过UUID获取可读的Characteristic
+                service.getCharacteristic(BleBlueImpl.UUID_READ_NOTIFY) //通过UUID获取可读的Characteristic
             mBluetoothGatt?.readCharacteristic(characteristic)
         }
     }
@@ -277,10 +277,10 @@ class BleClientActivity : AppCompatActivity(), OnItemClickListener {
 
     fun writeData(view: View) {
         val msg = editText.text.toString()
-        val service = getGattService(BleServerActivity.UUID_SERVICE)
+        val service = getGattService(BleBlueImpl.UUID_SERVICE)
         if (service != null) {
             val characteristic =
-                service.getCharacteristic(BleServerActivity.UUID_WRITE) //通过UUID获取可读的Characteristic
+                service.getCharacteristic(BleBlueImpl.UUID_WRITE) //通过UUID获取可读的Characteristic
             characteristic.value = msg.toByteArray()
             mBluetoothGatt?.writeCharacteristic(characteristic)
         }

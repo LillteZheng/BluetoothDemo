@@ -36,6 +36,8 @@ class MainActivity : AppCompatActivity() {
                 startActivityForResult(Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE),1)
             }
         }
+
+
     }
 
 
